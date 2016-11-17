@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="expense_type">
+        <item>DUB-pranzi &amp; cene fuori casa</item>
+        <item>DUB-vitto</item>
+        <item>DUB-taxi &amp; bus</item>
+        <item>DUB-alloggio</item>
+        <item>DUB-necessita</item>
+        <item>DUB-Voli</item>
+        <item>DUB-spesa</item>
+        <item>DUB-altro</item>
+        <item>DUB-amenities</item>
+    </string-array>
+
+    <string-array name="payment_method">
+        <item>Carta</item>
+        <item>Contanti</item>
+        <item>UNIPOL - Carta</item>
+        <item>UNIPOL - addebito paypal</item>
+        <item>Assegno</item>
+        <item>Bonifico</item>
+        <item>UNIPOL</item>
+        <item>UNIPOL - Saldo paypal</item>
+        <item>UNIPOL - Saldo fineco</item>
+    </string-array>
+
+</resources>
