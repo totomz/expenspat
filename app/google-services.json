@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "777996843640",
+    "project_id": "expenspat"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:777996843640:android:cf6879f7ebc60481",
+        "android_client_info": {
+          "package_name": "expenspat.totomz.expenspat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "777996843640-t06ogg81nue7o6b77v1ch6lth3rnt70v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "expenspat.totomz.expenspat",
+            "certificate_hash": "CC5EFED7B9014E5985AAA4AAC3655E324B7B025F"
+          }
+        },
+        {
+          "client_id": "777996843640-d7k74kfiias7h4ejoep0n85nfck4rje9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCxcnmYbchVq0pFCIpj4NLEPQFZHWhW438"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

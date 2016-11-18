@@ -8,9 +8,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -18,11 +20,29 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException;
+import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.ExponentialBackOff;
+import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
+import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest;
+import com.google.api.services.sheets.v4.model.BatchUpdateValuesRequest;
+import com.google.api.services.sheets.v4.model.CellData;
+import com.google.api.services.sheets.v4.model.ExtendedValue;
+import com.google.api.services.sheets.v4.model.GridCoordinate;
+import com.google.api.services.sheets.v4.model.Request;
+import com.google.api.services.sheets.v4.model.RowData;
+import com.google.api.services.sheets.v4.model.UpdateCellsRequest;
+import com.google.api.services.sheets.v4.model.ValueRange;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -39,8 +59,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private static final int REQUEST_GOOGLE_PLAY_SERVICES = 1002;
     private static final int REQUEST_PERMISSION_GET_ACCOUNTS = 1003;
 
-    private static final String PREF_ACCOUNT_NAME = "accountName";
-    private static final String[] SCOPES = { SheetsScopes.SPREADSHEETS_READONLY };
+    private static final String PREF_ACCOUNT_NAME = "777996843640-cl3iocvvj7801lp58fc85f33e3salikd.apps.googleusercontent.com";
+    private static final String[] SCOPES = { SheetsScopes.SPREADSHEETS, SheetsScopes.DRIVE };
 
 
     private GoogleAccountCredential mCredential;
@@ -82,8 +102,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         } else if (! isDeviceOnline()) {
             Toast.makeText(getApplicationContext(), "No network connection available.", Toast.LENGTH_LONG).show();
         } else {
-            Toast.makeText(getApplicationContext(), "Come se la richiesta fosse partita.", Toast.LENGTH_LONG).show();
-//            new MakeRequestTask(mCredential).execute();
+            Toast.makeText(getApplicationContext(), "Saving in background.", Toast.LENGTH_LONG).show();
+            new MakeRequestTask(mCredential).execute();
         }
     }
 
@@ -262,5 +282,118 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         dialog.show();
     }
 
+    /**
+     * An asynchronous task that handles the Google Sheets API call.
+     * Placing the API calls in their own task ensures the UI stays responsive.
+     */
+    private class MakeRequestTask extends AsyncTask<Void, Void, List<String>> {
+        private com.google.api.services.sheets.v4.Sheets mService = null;
+        private Exception mLastError = null;
 
+        public MakeRequestTask(GoogleAccountCredential credential) {
+            HttpTransport transport = AndroidHttp.newCompatibleTransport();
+            JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+            mService = new com.google.api.services.sheets.v4.Sheets.Builder(
+                    transport, jsonFactory, credential)
+                    .setApplicationName("Expenspat")
+                    .build();
+        }
+
+        /**
+         * Background task to call Google Sheets API.
+         * @param params no parameters needed for this task.
+         */
+        @Override
+        protected List<String> doInBackground(Void... params) {
+            try {
+                return getDataFromApi();
+            } catch (Exception e) {
+                mLastError = e;
+                cancel(true);
+                return null;
+            }
+        }
+        private List<String> getDataFromApi() throws IOException {
+            String spreadsheetId = "1d0PDMJ4Wt5ztFec_Rlx5MARqkuj2rAAsMao7GeZL6Qw";
+
+            Sheets service = this.mService;
+            List<Request> requests = new ArrayList<>();
+
+            List<CellData> values = new ArrayList<>();
+
+
+            values.add(new CellData().setUserEnteredValue(new ExtendedValue().setStringValue("Hello World!")));
+
+            requests.add(new Request()
+                    .setUpdateCells(new UpdateCellsRequest()
+                            .setStart(new GridCoordinate()
+                                    .setSheetId(0)
+                                    .setRowIndex(0)
+                                    .setColumnIndex(0))
+                            .setRows(Arrays.asList(
+                                    new RowData().setValues(values)))
+                            .setFields("userEnteredValue,userEnteredFormat.backgroundColor")));
+
+            BatchUpdateSpreadsheetRequest batchUpdateRequest = new BatchUpdateSpreadsheetRequest()
+                    .setRequests(requests);
+            service.spreadsheets().batchUpdate(spreadsheetId, batchUpdateRequest)
+                    .execute();
+
+            return null;
+        }
+
+        /**
+         * Fetch a list of names and majors of students in a sample spreadsheet:
+         * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
+         * @return List of names and majors
+         * @throws IOException
+         */
+        private List<String> getDataFromApi_() throws IOException {
+            String spreadsheetId = "1d0PDMJ4Wt5ztFec_Rlx5MARqkuj2rAAsMao7GeZL6Qw";
+            String range = "Class Data!A2:E";
+
+            ValueRange values = new ValueRange();
+            List<Object> pippo = new ArrayList<>();
+
+            pippo.add("17/11/2016");
+            pippo.add("17/11/2016");
+            pippo.add("DUB-taxi & bus");
+            pippo.add("300");
+            pippo.add("Carta");
+
+            values.setValues(Arrays.asList(pippo));
+            values.setMajorDimension("ROWS");
+
+            BatchUpdateValuesRequest vv = new BatchUpdateValuesRequest();
+            vv.setData(Arrays.asList(values));
+            this.mService.spreadsheets().values().batchUpdate(spreadsheetId, vv);
+
+            this.mService.spreadsheets().values().append(spreadsheetId,"A:D",values).execute();
+
+            return null;
+        }
+
+        @Override
+        protected void onCancelled() {
+            Log.e(TAG, mLastError.getClass() + " - " + mLastError.getMessage());
+
+            if (mLastError != null) {
+                if (mLastError instanceof GooglePlayServicesAvailabilityIOException) {
+                    showGooglePlayServicesAvailabilityErrorDialog(
+                            ((GooglePlayServicesAvailabilityIOException) mLastError)
+                                    .getConnectionStatusCode());
+                } else if (mLastError instanceof UserRecoverableAuthIOException) {
+                    startActivityForResult(
+                            ((UserRecoverableAuthIOException) mLastError).getIntent(),
+                            MainActivity.REQUEST_AUTHORIZATION);
+                } else {
+                    Toast.makeText(getApplicationContext(), "The following error occurred:\n"
+                            + mLastError.getMessage(), Toast.LENGTH_LONG);
+                }
+            } else {
+                Toast.makeText(getApplicationContext(), "Request cancelled", Toast.LENGTH_LONG);
+            }
+        }
+
+    }
 }
