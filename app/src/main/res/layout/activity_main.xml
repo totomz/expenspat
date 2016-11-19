@@ -12,12 +12,11 @@
 
     <LinearLayout
         android:orientation="vertical"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:weightSum="1"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="30dp">
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true">
 
         <EditText
             android:layout_width="match_parent"
@@ -47,6 +46,14 @@
             android:layout_height="wrap_content"
             android:id="@+id/payment"
             android:entries="@array/payment_method"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName"
+            android:text="Comment"
+            android:ems="10"
+            android:id="@+id/comment" />
 
         <Button
             android:text="Add!"

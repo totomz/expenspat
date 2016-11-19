@@ -12,10 +12,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -28,16 +28,7 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.ExponentialBackOff;
-import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
-import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest;
-import com.google.api.services.sheets.v4.model.BatchUpdateValuesRequest;
-import com.google.api.services.sheets.v4.model.CellData;
-import com.google.api.services.sheets.v4.model.ExtendedValue;
-import com.google.api.services.sheets.v4.model.GridCoordinate;
-import com.google.api.services.sheets.v4.model.Request;
-import com.google.api.services.sheets.v4.model.RowData;
-import com.google.api.services.sheets.v4.model.UpdateCellsRequest;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.IOException;
@@ -83,7 +74,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
     /** Called when the user touches the button */
     public void registerExpense(View view) {
-        Log.i(TAG, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
         saveToSpreadsheet();
     }
 
@@ -313,62 +303,32 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 return null;
             }
         }
+
         private List<String> getDataFromApi() throws IOException {
             String spreadsheetId = "1d0PDMJ4Wt5ztFec_Rlx5MARqkuj2rAAsMao7GeZL6Qw";
 
-            Sheets service = this.mService;
-            List<Request> requests = new ArrayList<>();
-
-            List<CellData> values = new ArrayList<>();
-
-
-            values.add(new CellData().setUserEnteredValue(new ExtendedValue().setStringValue("Hello World!")));
-
-            requests.add(new Request()
-                    .setUpdateCells(new UpdateCellsRequest()
-                            .setStart(new GridCoordinate()
-                                    .setSheetId(0)
-                                    .setRowIndex(0)
-                                    .setColumnIndex(0))
-                            .setRows(Arrays.asList(
-                                    new RowData().setValues(values)))
-                            .setFields("userEnteredValue,userEnteredFormat.backgroundColor")));
-
-            BatchUpdateSpreadsheetRequest batchUpdateRequest = new BatchUpdateSpreadsheetRequest()
-                    .setRequests(requests);
-            service.spreadsheets().batchUpdate(spreadsheetId, batchUpdateRequest)
-                    .execute();
-
-            return null;
-        }
-
-        /**
-         * Fetch a list of names and majors of students in a sample spreadsheet:
-         * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
-         * @return List of names and majors
-         * @throws IOException
-         */
-        private List<String> getDataFromApi_() throws IOException {
-            String spreadsheetId = "1d0PDMJ4Wt5ztFec_Rlx5MARqkuj2rAAsMao7GeZL6Qw";
-            String range = "Class Data!A2:E";
-
             ValueRange values = new ValueRange();
-            List<Object> pippo = new ArrayList<>();
+            List<Object> value = new ArrayList<>();
 
-            pippo.add("17/11/2016");
-            pippo.add("17/11/2016");
-            pippo.add("DUB-taxi & bus");
-            pippo.add("300");
-            pippo.add("Carta");
+            value.add(((EditText)findViewById(R.id.when)).getText().toString());
+            value.add(((Spinner)findViewById(R.id.kind)).getSelectedItem().toString());
+            value.add(((EditText)findViewById(R.id.money)).getText().toString());
+            value.add(((Spinner)findViewById(R.id.payment)).getSelectedItem().toString());
+            value.add(((EditText)findViewById(R.id.comment)).getText().toString());
 
-            values.setValues(Arrays.asList(pippo));
+            values.setValues(Arrays.asList(value));
             values.setMajorDimension("ROWS");
 
-            BatchUpdateValuesRequest vv = new BatchUpdateValuesRequest();
-            vv.setData(Arrays.asList(values));
-            this.mService.spreadsheets().values().batchUpdate(spreadsheetId, vv);
+            Log.i(TAG, "Sending request");
 
-            this.mService.spreadsheets().values().append(spreadsheetId,"A:D",values).execute();
+            String result = this.mService.spreadsheets().values()
+                    .append(spreadsheetId,"Registro movimenti!A:D",values)
+                    .setValueInputOption("USER_ENTERED")
+                    .execute()
+                    .toPrettyString();
+
+            Log.i(TAG, "Request sent");
+            Log.i(TAG, result);
 
             return null;
         }
