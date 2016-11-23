@@ -8,7 +8,9 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="expenspat.totomz.expenspat.MainActivity">
+    tools:context="expenspat.totomz.expenspat.MainActivity"
+    android:backgroundTint="@color/colorAccent"
+    android:background="@color/colorAccent">
 
     <LinearLayout
         android:orientation="vertical"
@@ -16,9 +18,11 @@
         android:layout_height="match_parent"
         android:weightSum="1"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true">
+        android:layout_centerHorizontal="true"
+        android:clipChildren="false">
 
         <EditText
+            android:layout_margin="10dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="date"
@@ -28,12 +32,14 @@
             android:hint="when"/>
 
         <Spinner
+            android:layout_margin="10dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/kind"
             android:entries="@array/expense_type"/>
 
         <EditText
+            android:layout_margin="10dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="numberDecimal"
@@ -42,25 +48,37 @@
             android:hint="Expense" />
 
         <Spinner
+            android:layout_margin="10dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/payment"
             android:entries="@array/payment_method"/>
 
-        <EditText
+        <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPersonName"
-            android:text="Comment"
-            android:ems="10"
-            android:id="@+id/comment" />
+            android:layout_height="match_parent">
 
-        <Button
-            android:text="Add!"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/register_expens"
-            android:onClick="registerExpense"/>
+            <EditText
+                android:layout_margin="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:text=""
+                android:hint="Comment"
+                android:ems="10"
+                android:id="@+id/comment"
+                android:layout_weight="1" />
+
+            <Button
+                android:layout_margin="10dp"
+                android:text="Add!"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/register_expens"
+                android:onClick="registerExpense"
+                android:layout_weight="1" />
+        </LinearLayout>
 
     </LinearLayout>
 </RelativeLayout>

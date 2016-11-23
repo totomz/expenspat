@@ -3,6 +3,7 @@ package expenspat.totomz.expenspat;
 import android.Manifest;
 import android.accounts.AccountManager;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -29,6 +30,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.sheets.v4.SheetsScopes;
+import com.google.api.services.sheets.v4.model.AppendValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.IOException;
@@ -52,9 +54,10 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
     private static final String PREF_ACCOUNT_NAME = "777996843640-cl3iocvvj7801lp58fc85f33e3salikd.apps.googleusercontent.com";
     private static final String[] SCOPES = { SheetsScopes.SPREADSHEETS, SheetsScopes.DRIVE };
-
+    private static final String spreadsheetId = "1PaF4PaBGTp-BHjQVxmcB0wTKN_uSPAZCTwxrJ_uUAgc";
 
     private GoogleAccountCredential mCredential;
+    private ProgressDialog mProgress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +73,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 getApplicationContext(), Arrays.asList(SCOPES))
                 .setBackOff(new ExponentialBackOff());
 
+        mProgress = new ProgressDialog(this);
+        mProgress.setMessage("Saving on Google Sheet ...");
     }
 
     /** Called when the user touches the button */
@@ -92,7 +97,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         } else if (! isDeviceOnline()) {
             Toast.makeText(getApplicationContext(), "No network connection available.", Toast.LENGTH_LONG).show();
         } else {
-            Toast.makeText(getApplicationContext(), "Saving in background.", Toast.LENGTH_LONG).show();
             new MakeRequestTask(mCredential).execute();
         }
     }
@@ -276,7 +280,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
      * An asynchronous task that handles the Google Sheets API call.
      * Placing the API calls in their own task ensures the UI stays responsive.
      */
-    private class MakeRequestTask extends AsyncTask<Void, Void, List<String>> {
+    private class MakeRequestTask extends AsyncTask<Void, Void, AppendValuesResponse> {
         private com.google.api.services.sheets.v4.Sheets mService = null;
         private Exception mLastError = null;
 
@@ -294,18 +298,18 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
          * @param params no parameters needed for this task.
          */
         @Override
-        protected List<String> doInBackground(Void... params) {
+        protected AppendValuesResponse doInBackground(Void... params) {
             try {
                 return getDataFromApi();
             } catch (Exception e) {
                 mLastError = e;
                 cancel(true);
+                Log.e(TAG, "AAAARGH error with the request! ", e);
                 return null;
             }
         }
 
-        private List<String> getDataFromApi() throws IOException {
-            String spreadsheetId = "1d0PDMJ4Wt5ztFec_Rlx5MARqkuj2rAAsMao7GeZL6Qw";
+        private AppendValuesResponse getDataFromApi() throws IOException {
 
             ValueRange values = new ValueRange();
             List<Object> value = new ArrayList<>();
@@ -319,18 +323,31 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             values.setValues(Arrays.asList(value));
             values.setMajorDimension("ROWS");
 
-            Log.i(TAG, "Sending request");
-
-            String result = this.mService.spreadsheets().values()
-                    .append(spreadsheetId,"Registro movimenti!A:D",values)
+            AppendValuesResponse result = this.mService.spreadsheets().values()
+                    .append(spreadsheetId, "Registro movimenti!A:D", values)
                     .setValueInputOption("USER_ENTERED")
-                    .execute()
-                    .toPrettyString();
+                    .execute();
 
-            Log.i(TAG, "Request sent");
-            Log.i(TAG, result);
+            return result;
+        }
 
-            return null;
+        @Override
+        protected void onPreExecute() {
+            mProgress.show();
+        }
+
+        @Override
+        protected void onPostExecute(AppendValuesResponse appendValuesResponse) {
+
+            mProgress.hide();
+
+            if(appendValuesResponse.getUpdates().getUpdatedRows() > 0) {
+                ((EditText)findViewById(R.id.money)).setText("");
+                ((EditText)findViewById(R.id.comment)).setText("");
+                Toast.makeText(getApplicationContext(),
+                            String.format("Saved %s rows", appendValuesResponse.getUpdates().getUpdatedRows()), Toast.LENGTH_LONG)
+                        .show();
+            }
         }
 
         @Override
@@ -348,10 +365,10 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                             MainActivity.REQUEST_AUTHORIZATION);
                 } else {
                     Toast.makeText(getApplicationContext(), "The following error occurred:\n"
-                            + mLastError.getMessage(), Toast.LENGTH_LONG);
+                            + mLastError.getMessage(), Toast.LENGTH_LONG).show();
                 }
             } else {
-                Toast.makeText(getApplicationContext(), "Request cancelled", Toast.LENGTH_LONG);
+                Toast.makeText(getApplicationContext(), "Request cancelled", Toast.LENGTH_LONG).show();
             }
         }
 
